@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             return 0;
         }
 
-        // shows the item and selects item from list
+        // shows the item and shows if an item from list is selected or not
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             if (convertView == null) {
@@ -139,11 +139,11 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private boolean isFIleManagerInitialized = false;
-    private boolean[] selection;
+    private boolean appStarted = false;
+    private boolean[] clicked;
     private File[] files;
     private List<String> filesList;
-    private int filesFoundCount;
+    private int fileCount;
 
     // method to check permissions on start
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(PERMISSIONS, REQUEST_PERMISSIONS);
             return;
         }
-        if (!isFIleManagerInitialized) {
+        if (!appStarted) {
             final String dlPath = String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
             final String docPath = String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS));
             final String imgPath = String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));
@@ -166,25 +166,25 @@ public class MainActivity extends AppCompatActivity {
             TextView pathOutput = findViewById(R.id.pathOutput);
             // removes path from download folder for better view.
             pathOutput.setText(dlPath.substring(dlPath.lastIndexOf('/') + 1));
-            filesFoundCount = files.length;
+            fileCount = files.length;
             ListView listView = findViewById(R.id.listView);
             TextAdapter textAdapter1 = new TextAdapter();
             listView.setAdapter(textAdapter1);
             filesList = new ArrayList<>();
 
-            for (int i = 0; i < filesFoundCount; i++) {
+            for (int i = 0; i < fileCount; i++) {
                 filesList.add(String.valueOf(files[i].getAbsolutePath()));
             }
             textAdapter1.setData(filesList);
             // user selected file
-            selection = new boolean[files.length];
+            clicked = new boolean[files.length];
 
             // to select a file in the app directory.
             listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    selection[position] = !selection[position];
-                    textAdapter1.setSelection(selection);
+                    clicked[position] = !clicked[position];
+                    textAdapter1.setSelection(clicked);
 
                     return false;
                 }
@@ -209,16 +209,16 @@ public class MainActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             // deletes selected files
                             for (int i = 0; i < files.length; i++) {
-                                if (selection[i]) {
+                                if (clicked[i]) {
                                     deleteFile(files[i]);
-                                    selection[i] = false;
+                                    clicked[i] = false;
                                 }
                             }
                             //update file list
                             files = dir.listFiles();
-                            filesFoundCount = files.length;
+                            fileCount = files.length;
                             filesList.clear();
-                            for (int i = 0; i < filesFoundCount; i++) {
+                            for (int i = 0; i < fileCount; i++) {
                                 filesList.add(String.valueOf(files[i].getAbsolutePath()));
                             }
                             textAdapter1.setData(filesList);
@@ -246,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialog, int which) {
                             // cycles through selected files and moves them if selected.
                             for (int i = 0; i < files.length; i++) {
-                                if (selection[i]) {
+                                if (clicked[i]) {
                                     try {
                                         // moves file to the images folder then deletes file
                                         moveFile(files[i], images);
@@ -254,14 +254,14 @@ public class MainActivity extends AppCompatActivity {
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
-                                    selection[i] = false;
+                                    clicked[i] = false;
                                 }
                             }
                             //update file list in app
                             files = dir.listFiles();
-                            filesFoundCount = files.length;
+                            fileCount = files.length;
                             filesList.clear();
-                            for (int i = 0; i < filesFoundCount; i++) {
+                            for (int i = 0; i < fileCount; i++) {
                                 filesList.add(String.valueOf(files[i].getAbsolutePath()));
                             }
                             textAdapter1.setData(filesList);
@@ -288,9 +288,9 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             for (int i = 0; i < files.length; i++) {
-                                if (selection[i]) {
+                                if (clicked[i]) {
                                     openFile(files[i]);
-                                    selection[i] = false;
+                                    clicked[i] = false;
                                 }
                             }
                         }
@@ -305,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             ////////////////////////////////////////////////////////////////////////////////////////
-            isFIleManagerInitialized = true;
+            appStarted = true;
         }
     }
 
